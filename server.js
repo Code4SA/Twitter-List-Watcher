@@ -24,7 +24,7 @@ try {
 			interval: 120, //Seconds
 		},
 		mongodb: {
-			connect_string: "mongodb://localhost/agendasetter",
+			connect_string: process.env.MONGOLAB_URI,
 		},
 	}
 }
