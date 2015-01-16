@@ -1,0 +1,9 @@
+{
+  "name": "AgendaSetter",
+  "description": "AgendaSetter website for Media Monitoring Africa",
+  "author": "Jason Norwood-Young <jason@code4sa.org>",
+  "dependencies": {
+    "mongoose": "^3.8.21",
+    "twit": "^1.1.19"
+  }
+}
