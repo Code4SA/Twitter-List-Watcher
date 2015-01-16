@@ -1,7 +1,33 @@
 var Twit = require('twit')
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
-var config = require('./config');
+try {
+	var config = require('./config');
+} catch(e) {
+	var config = {
+		twitter: {
+			consumer_key:         process.env.TWITTER_CONSUMER_KEY, 
+			consumer_secret:      process.env.TWITTER_CONSUMER_SECRET,
+			access_token:         process.env.TWITTER_ACCESS_TOKEN,
+			access_token_secret:  process.env.TWITTER_ACCESS_TOKEN_SECRET,
+
+			lists: [
+				{ 
+					slug: "sa-journos-who-tweet", owner_screen_name: "rayjoe" 
+				},
+				// {
+				// 	slug: "a-brave-new-world", owner_screen_name: "rayjoe"
+				// },
+			],
+
+			count: 200,
+			interval: 120, //Seconds
+		},
+		mongodb: {
+			connect_string: "mongodb://localhost/agendasetter",
+		},
+	}
+}
 
 mongoose.connect(config.mongodb.connect_string);
 
