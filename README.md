@@ -22,7 +22,7 @@ Edit config.js for your [Twitter API auth details](https://apps.twitter.com/), a
 
 Run the server
 
-`node twitwatcher.js`
+`node server.js`
 
 ## Results
 
