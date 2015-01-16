@@ -12,32 +12,33 @@ The server is built by Jason Norwood-Young from [Code for South Africa](http://c
 
 First, install the dependencies.
 
-```npm install```
+`npm install`
 
 Copy config_sample.js to config.js
 
-```cp config_sample.js config.js```
+`cp config_sample.js config.js`
 
 Edit config.js for your [Twitter API auth details](https://apps.twitter.com/), and the lists you'd like to watch. (The "slug" is the list name, the "owner_screen_name" is the Twitter username of the list owner.)
 
 Run the server
 
-```node server.js```
+`node server.js`
 
 ## Results
 
 Results are stored in MongoDB. Here's an example of how we'd see the resulting Tweets, ordered by number of retweets, but excluding tweets that are themselves retweets.
 
 First get into Mongo:
-```mongo```
+
+`mongo`
 
 Use the correct database:
 
-```use agendasetter```
+`use agendasetter`
 
 Find the tweets for our sa-journos-who-tweet list:
 
-```db.tweets.find({ retweeted_status: { $exists: false }, list_slug: "sa-journos-who-tweet" }, { "user.screen_name": 1, text: 1, retweet_count: 1 }).sort( { retweet_count: -1 });```
+`db.tweets.find({ retweeted_status: { $exists: false }, list_slug: "sa-journos-who-tweet" }, { "user.screen_name": 1, text: 1, retweet_count: 1 }).sort( { retweet_count: -1 });`
 
 ## API
 
@@ -45,19 +46,19 @@ Fortunately, you don't need to use Mongo every time you want to see results. The
 
 ### Get last 100 Tweets
 
-```http://localhost:8080/tweets```
+`http://localhost:8080/tweets`
 
 [Heroku link](https://twitter-list-watcher.herokuapp.com/tweets)
 
 ### Top 10 Tweets for the last week, by Retweets
 
-```http://localhost:8080/tweets/top/retweets```
+`http://localhost:8080/tweets/top/retweets`
 
 [Heroku link](https://twitter-list-watcher.herokuapp.com/tweets/top/retweets)
 
 ### Top 10 Tweets for the last week, by Retweets
 
-```http://localhost:8080/tweets/top/favourites```
+`http://localhost:8080/tweets/top/favourites`
 
 [Heroku link](https://twitter-list-watcher.herokuapp.com/tweets/top/favourites)
 
@@ -73,6 +74,6 @@ You can also modify the _/tweets_ endpoint with parameters. The parameters are:
 
 Example of finding the top 10 Tweets according to favourites for the last hour:
 
-```http://localhost:8080/tweets?limit=10&sort=favourite_count&no_retweets=true&list_slug=sa-journos-who-tweet&period=1h```
+`http://localhost:8080/tweets?limit=10&sort=favourite_count&no_retweets=true&list_slug=sa-journos-who-tweet&period=1h`
 
 [Heroku link](https://twitter-list-watcher.herokuapp.com/tweets?limit=10&sort=favourite_count&no_retweets=true&list_slug=sa-journos-who-tweet&period=1h)
