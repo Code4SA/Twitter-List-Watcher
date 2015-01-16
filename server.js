@@ -86,6 +86,10 @@ var get_list = function(slug, owner_screen_name) {
 	}
 
 	T.get('lists/statuses', { slug: slug, owner_screen_name: owner_screen_name, count: config.twitter.count }, function(err, tweets, response) {
+		if (err) {
+			console.log("Twitter error", err);
+			return;
+		}
 		var top_tweet = { retweet_count: 0 };
 		tweets.forEach(function(tweet) {
 			if (tweet.retweet_count > 5) {
