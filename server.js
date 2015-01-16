@@ -104,3 +104,83 @@ var get_next_list = function() {
 get_next_list();
 
 setInterval(get_next_list, 1000 * config.twitter.interval);
+
+//API Server
+var restify = require('restify');
+
+var server = restify.createServer();
+server.use(restify.queryParser());
+
+var timePeriod = function(t) {
+	var periods = {
+		n: 60,
+		h: 60 * 60,
+		d: 60 * 60 * 24,
+		w: 60 * 60 * 24 * 7,
+		m: 60 * 60 * 24 * 7 * 30,
+		y: 60 * 60 * 24 * 7 * 365,
+	}
+	if (isNaN(t.charAt(t.length - 1))) {
+		var p = t.slice(-1);
+		if (p in periods) {
+			t = periods[p] * parseInt(t);
+		}
+	}
+	return new Date(new Date().getTime() - (t*1000));
+}
+
+var queryBuilder = function(req, res, next) {
+	var find = {};
+	if (req.params.list_slug) {
+		find.list_slug = req.params.list_slug;
+	}
+	if (req.params.no_retweets) {
+		find.retweeted_status = { $exists: false };
+	}
+	if (req.params.period) {
+		find.created_at = { $gte:  timePeriod(req.params.period) }
+	}
+	req.mongodb_q = Tweet.find(find);
+	if (req.params.limit) {
+		req.mongodb_q.limit(req.params.limit);
+	} else {
+		req.mongodb_q.limit(100);
+	}
+	if (req.params.sort) {
+		req.mongodb_q.sort = {};
+		req.mongodb_q.sort[req.params.sort] = -1; //Always sort descending
+	} else {
+		req.mongodb_q.sort({ created_at: -1 });
+	}
+
+	next();
+};
+
+server.get("/tweets", queryBuilder, function(req, res, next) {
+	console.log(req.route.path);
+	req.mongodb_q.exec(function(err, tweets) {
+		res.json(tweets);
+		next();
+	})
+});
+
+server.get("/tweets/top/retweets/", function(req, res, next) {
+	console.log(req.route.path);
+	Tweet.find({ retweeted_status: { $exists: false }, list_slug: "sa-journos-who-tweet", created_at: { $gte: timePeriod("7d") }  }).sort({ retweet_count: -1 }).limit(10).exec(function(err, tweets) {
+		res.json(tweets);
+		next();
+	})
+});
+
+server.get("/tweets/top/favourites/", function(req, res, next) {
+	console.log(req.route.path);
+
+	Tweet.find({ retweeted_status: { $exists: false }, list_slug: "sa-journos-who-tweet", created_at: { $gte: timePeriod("7d") } }).sort({ favourite_count: -1 }).limit(10).exec(function(err, tweets) {
+		res.json(tweets);
+		next();
+	})
+});
+
+server.listen(8080, function() {
+	console.log('%s listening at %s', server.name, server.url);
+});
