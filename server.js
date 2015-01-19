@@ -35,6 +35,7 @@ var Tweet = mongoose.model('Tweet',
 	{ 
 		tweet: String,
 		id: String,
+		id_str: String,
 		created_at: Date,
 		text: String,
 		source: String,
