@@ -198,7 +198,7 @@ server.get("/tweets", queryBuilder, function(req, res, next) {
 
 server.get("/tweets/top/retweets/", function(req, res, next) {
 	console.log(req.route.path);
-	Tweet.find({ retweeted_status: { $exists: false }, list_slug: "sa-journos-who-tweet", created_at: { $gte: timePeriod("7d") }  }).sort({ retweet_count: -1 }).limit(10).exec(function(err, tweets) {
+	Tweet.find({ retweeted_status: { $exists: false }, list_slug: "sa-journos-who-tweet", created_at: { $gte: timePeriod("24h") }  }).sort({ retweet_count: -1 }).limit(10).exec(function(err, tweets) {
 		res.json(tweets);
 		next();
 	})
@@ -207,7 +207,7 @@ server.get("/tweets/top/retweets/", function(req, res, next) {
 server.get("/tweets/top/favourites/", function(req, res, next) {
 	console.log(req.route.path);
 
-	Tweet.find({ retweeted_status: { $exists: false }, list_slug: "sa-journos-who-tweet", created_at: { $gte: timePeriod("7d") } }).sort({ favourite_count: -1 }).limit(10).exec(function(err, tweets) {
+	Tweet.find({ retweeted_status: { $exists: false }, list_slug: "sa-journos-who-tweet", created_at: { $gte: timePeriod("24h") } }).sort({ favorite_count: -1 }).limit(10).exec(function(err, tweets) {
 		res.json(tweets);
 		next();
 	})
