@@ -40,8 +40,8 @@ var Tweet = mongoose.model('Tweet',
 		text: String,
 		source: String,
 		user_id: Schema.Types.ObjectId,
-		retweet_count: Number,
-		favorite_count: Number,
+		retweet_count: { type: Number, index: true },
+		favorite_count: { type: Number, index: true },
 		retweeted_status: Schema.Types.Mixed,
 		user: Schema.Types.Mixed,
 		list_slug: String,
@@ -56,12 +56,14 @@ var Tweeter = mongoose.model('Tweeter',
 		screen_name: String,
 		location: String,
 		description: String,
-		followers_count: Number,
+		followers_count: { type: Number, index: true },
 		friends_count: Number,
-		listed_count: Number,
-		favourites_count: Number,
+		listed_count: { type: Number, index: true },
+		favourites_count: { type: Number, index: true },
 		created_at: Date,
 		profile_image_url: String,
+		list_slug: String,
+		list_owner_screen_name: String,
 	}
 );
 
@@ -94,6 +96,9 @@ var get_list = function(slug, owner_screen_name) {
 		var top_tweet = { retweet_count: 0 };
 		tweets.forEach(function(tweet) {
 			if (tweet.retweet_count > 5) {
+				var user = tweet.user;
+				user.list_slug = slug;
+				user.list_owner_screen_name = owner_screen_name;
 				// tweet = tweet.retweeted_status;
 				Tweeter.findOneAndUpdate({ id: tweet.user.id }, tweet.user, {upsert: true }, function(err, user) {
 					if (err) {
@@ -161,7 +166,7 @@ var timePeriod = function(t) {
 	return new Date(new Date().getTime() - (t*1000));
 }
 
-var queryBuilder = function(req, res, next) {
+var tweetQueryBuilder = function(req, res, next) {
 	var find = {};
 	if (req.params.list_slug) {
 		find.list_slug = req.params.list_slug;
@@ -188,7 +193,7 @@ var queryBuilder = function(req, res, next) {
 	next();
 };
 
-server.get("/tweets", queryBuilder, function(req, res, next) {
+server.get("/tweets", tweetQueryBuilder, function(req, res, next) {
 	console.log(req.route.path);
 	req.mongodb_q.exec(function(err, tweets) {
 		res.json(tweets);
@@ -209,6 +214,61 @@ server.get("/tweets/top/favourites/", function(req, res, next) {
 
 	Tweet.find({ retweeted_status: { $exists: false }, list_slug: "sa-journos-who-tweet", created_at: { $gte: timePeriod("24h") } }).sort({ favorite_count: -1 }).limit(10).exec(function(err, tweets) {
 		res.json(tweets);
+		next();
+	})
+});
+
+// var tweeterQueryBuilder = function(req, res, next) {
+// 	var find = {};
+// 	if (req.params.list_slug) {
+// 		find.list_slug = req.params.list_slug;
+// 	}
+// 	req.mongodb_q = Tweeter.find(find);
+// 	if (req.params.limit) {
+// 		req.mongodb_q.limit(req.params.limit);
+// 	} else {
+// 		req.mongodb_q.limit(100);
+// 	}
+// 	if (req.params.sort) {
+// 		req.mongodb_q.sort = {};
+// 		req.mongodb_q.sort[req.params.sort] = -1; //Always sort descending
+// 	} else {
+// 		req.mongodb_q.sort({ created_at: -1 });
+// 	}
+
+// 	next();
+// };
+
+// server.get("/tweeters", tweeterQueryBuilder, function(req, res, next) {
+// 	console.log(req.route.path);
+
+// 	req.mongodb_q.exec(function(err, tweeters) {
+// 		console.log(tweeters);
+// 		res.json(tweeters);
+// 		next();
+// 	})
+// });
+
+server.get("/tweeters/top/followers/", function(req, res, next) {
+	console.log(req.route.path);
+	Tweeter.find({ list_slug: "sa-journos-who-tweet" }).sort({ followers_count: -1 }).limit(10).exec(function(err, tweeters) {
+		res.json(tweeters);
+		next();
+	})
+});
+
+server.get("/tweeters/top/listed/", function(req, res, next) {
+	console.log(req.route.path);
+	Tweeter.find({ list_slug: "sa-journos-who-tweet" }).sort({ listed_count: -1 }).limit(10).exec(function(err, tweeters) {
+		res.json(tweeters);
+		next();
+	})
+});
+
+server.get("/tweeters/top/favourite/", function(req, res, next) {
+	console.log(req.route.path);
+	Tweeter.find({ list_slug: "sa-journos-who-tweet" }).sort({ favourites_count: -1 }).limit(10).exec(function(err, tweeters) {
+		res.json(tweeters);
 		next();
 	})
 });
