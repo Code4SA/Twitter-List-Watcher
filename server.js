@@ -46,6 +46,7 @@ var Tweet = mongoose.model('Tweet',
 		user: Schema.Types.Mixed,
 		list_slug: String,
 		list_owner_screen_name: String,
+		lists: Schema.Types.Mixed,
 	}
 );
 
@@ -97,8 +98,8 @@ var get_list = function(slug, owner_screen_name) {
 		tweets.forEach(function(tweet) {
 			if (tweet.retweet_count > 5) {
 				var user = tweet.user;
-				user.list_slug = slug;
-				user.list_owner_screen_name = owner_screen_name;
+				user.lists = [];
+				user.lists.push({ slug: slug, owner_screen_name: owner_screen_name });
 				// tweet = tweet.retweeted_status;
 				Tweeter.findOneAndUpdate({ id: tweet.user.id }, tweet.user, {upsert: true }, function(err, user) {
 					if (err) {
@@ -116,7 +117,7 @@ var get_list = function(slug, owner_screen_name) {
 							// console.log(data);
 						});	
 					}
-				})
+				});
 				
 			}
 			if (tweet.retweet_count > top_tweet.retweet_count) {
@@ -177,23 +178,28 @@ var tweetQueryBuilder = function(req, res, next) {
 	if (req.params.period) {
 		find.created_at = { $gte:  timePeriod(req.params.period) }
 	}
-	req.mongodb_q = Tweet.find(find);
-	if (req.params.limit) {
-		req.mongodb_q.limit(req.params.limit);
-	} else {
-		req.mongodb_q.limit(100);
-	}
+	var sort = { created_at: -1 };
 	if (req.params.sort) {
-		req.mongodb_q.sort = {};
-		req.mongodb_q.sort[req.params.sort] = -1; //Always sort descending
-	} else {
-		req.mongodb_q.sort({ created_at: -1 });
+		sort = {};
+		sort[req.params.sort] = -1; //Always sort descending
 	}
-
+	var limit = 100;
+	if (req.params.limit) {
+		limit = req.params.limit;
+	}
+	req.mongodb_q = Tweet.find(find).sort(sort).limit(limit);
 	next();
 };
 
 server.get("/tweets", tweetQueryBuilder, function(req, res, next) {
+	console.log(req.route.path);
+	req.mongodb_q.exec(function(err, tweets) {
+		res.json(tweets);
+		next();
+	})
+});
+
+server.get("/tweeters", tweetQueryBuilder, function(req, res, next) {
 	console.log(req.route.path);
 	req.mongodb_q.exec(function(err, tweets) {
 		res.json(tweets);
@@ -217,37 +223,6 @@ server.get("/tweets/top/favourites/", function(req, res, next) {
 		next();
 	})
 });
-
-// var tweeterQueryBuilder = function(req, res, next) {
-// 	var find = {};
-// 	if (req.params.list_slug) {
-// 		find.list_slug = req.params.list_slug;
-// 	}
-// 	req.mongodb_q = Tweeter.find(find);
-// 	if (req.params.limit) {
-// 		req.mongodb_q.limit(req.params.limit);
-// 	} else {
-// 		req.mongodb_q.limit(100);
-// 	}
-// 	if (req.params.sort) {
-// 		req.mongodb_q.sort = {};
-// 		req.mongodb_q.sort[req.params.sort] = -1; //Always sort descending
-// 	} else {
-// 		req.mongodb_q.sort({ created_at: -1 });
-// 	}
-
-// 	next();
-// };
-
-// server.get("/tweeters", tweeterQueryBuilder, function(req, res, next) {
-// 	console.log(req.route.path);
-
-// 	req.mongodb_q.exec(function(err, tweeters) {
-// 		console.log(tweeters);
-// 		res.json(tweeters);
-// 		next();
-// 	})
-// });
 
 server.get("/tweeters/top/followers/", function(req, res, next) {
 	console.log(req.route.path);
