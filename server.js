@@ -178,10 +178,9 @@ var tweetQueryBuilder = function(req, res, next) {
 	if (req.params.period) {
 		find.created_at = { $gte:  timePeriod(req.params.period) }
 	}
-	var sort = { created_at: -1 };
+	var sort = "-created_at";
 	if (req.params.sort) {
-		sort = {};
-		sort[req.params.sort] = -1; //Always sort descending
+		sort = "-" + req.params.sort; //Always sort descending
 	}
 	var limit = 100;
 	if (req.params.limit) {
@@ -192,7 +191,6 @@ var tweetQueryBuilder = function(req, res, next) {
 };
 
 server.get("/tweets", tweetQueryBuilder, function(req, res, next) {
-	console.log(req.route.path);
 	req.mongodb_q.exec(function(err, tweets) {
 		res.json(tweets);
 		next();
