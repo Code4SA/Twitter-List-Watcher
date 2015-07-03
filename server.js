@@ -1,4 +1,4 @@
-var Twit = require('twit')
+var Twit = require('twit');
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 try {
@@ -26,7 +26,7 @@ try {
 		mongodb: {
 			connect_string: process.env.MONGOLAB_URI,
 		},
-	}
+	};
 }
 
 mongoose.connect(config.mongodb.connect_string);
@@ -84,10 +84,10 @@ var T = new Twit({
 var get_list = function(slug, owner_screen_name) {
 
 	var remove_inc = function(o) {
-		if (o["$inc"]) {
-			delete o["$inc"];
+		if (o.$inc) {
+			delete o.$inc;
 		}
-	}
+	};
 
 	T.get('lists/statuses', { slug: slug, owner_screen_name: owner_screen_name, count: config.twitter.count }, function(err, tweets, response) {
 		if (err) {
@@ -125,10 +125,10 @@ var get_list = function(slug, owner_screen_name) {
 			}
 		});
 		console.log("Fetched list", owner_screen_name, slug);
-		console.log("Top tweet", top_tweet.user.screen_name, top_tweet.text)
+		console.log("Top tweet", top_tweet.user.screen_name, top_tweet.text);
 		// console.log(top_tweet);
 	});
-}
+};
 
 var list_queue = config.twitter.lists;
 
@@ -136,7 +136,7 @@ var get_next_list = function() {
 	var item = list_queue.shift();
 	get_list(item.slug, item.owner_screen_name);
 	list_queue.push(item);
-}
+};
 
 get_next_list();
 
@@ -157,7 +157,7 @@ var timePeriod = function(t) {
 		w: 60 * 60 * 24 * 7,
 		m: 60 * 60 * 24 * 7 * 30,
 		y: 60 * 60 * 24 * 7 * 365,
-	}
+	};
 	if (isNaN(t.charAt(t.length - 1))) {
 		var p = t.slice(-1);
 		if (p in periods) {
@@ -165,7 +165,7 @@ var timePeriod = function(t) {
 		}
 	}
 	return new Date(new Date().getTime() - (t*1000));
-}
+};
 
 var tweetQueryBuilder = function(req, res, next) {
 	var find = {};
@@ -176,7 +176,7 @@ var tweetQueryBuilder = function(req, res, next) {
 		find.retweeted_status = { $exists: false };
 	}
 	if (req.params.period) {
-		find.created_at = { $gte:  timePeriod(req.params.period) }
+		find.created_at = { $gte:  timePeriod(req.params.period) };
 	}
 	var sort = "-created_at";
 	if (req.params.sort) {
@@ -194,7 +194,7 @@ server.get("/tweets", tweetQueryBuilder, function(req, res, next) {
 	req.mongodb_q.exec(function(err, tweets) {
 		res.json(tweets);
 		next();
-	})
+	});
 });
 
 server.get("/tweeters", tweetQueryBuilder, function(req, res, next) {
@@ -202,7 +202,7 @@ server.get("/tweeters", tweetQueryBuilder, function(req, res, next) {
 	req.mongodb_q.exec(function(err, tweets) {
 		res.json(tweets);
 		next();
-	})
+	});
 });
 
 server.get("/tweets/top/retweets/", function(req, res, next) {
@@ -210,7 +210,7 @@ server.get("/tweets/top/retweets/", function(req, res, next) {
 	Tweet.find({ retweeted_status: { $exists: false }, list_slug: "sa-journos-who-tweet", created_at: { $gte: timePeriod("24h") }  }).sort({ retweet_count: -1 }).limit(10).exec(function(err, tweets) {
 		res.json(tweets);
 		next();
-	})
+	});
 });
 
 server.get("/tweets/top/favourites/", function(req, res, next) {
@@ -219,7 +219,7 @@ server.get("/tweets/top/favourites/", function(req, res, next) {
 	Tweet.find({ retweeted_status: { $exists: false }, list_slug: "sa-journos-who-tweet", created_at: { $gte: timePeriod("24h") } }).sort({ favorite_count: -1 }).limit(10).exec(function(err, tweets) {
 		res.json(tweets);
 		next();
-	})
+	});
 });
 
 server.get("/tweeters/top/followers/", function(req, res, next) {
@@ -227,7 +227,7 @@ server.get("/tweeters/top/followers/", function(req, res, next) {
 	Tweeter.find({ list_slug: "sa-journos-who-tweet" }).sort({ followers_count: -1 }).limit(10).exec(function(err, tweeters) {
 		res.json(tweeters);
 		next();
-	})
+	});
 });
 
 server.get("/tweeters/top/listed/", function(req, res, next) {
@@ -235,7 +235,7 @@ server.get("/tweeters/top/listed/", function(req, res, next) {
 	Tweeter.find({ list_slug: "sa-journos-who-tweet" }).sort({ listed_count: -1 }).limit(10).exec(function(err, tweeters) {
 		res.json(tweeters);
 		next();
-	})
+	});
 });
 
 server.get("/tweeters/top/favourite/", function(req, res, next) {
@@ -243,7 +243,7 @@ server.get("/tweeters/top/favourite/", function(req, res, next) {
 	Tweeter.find({ list_slug: "sa-journos-who-tweet" }).sort({ favourites_count: -1 }).limit(10).exec(function(err, tweeters) {
 		res.json(tweeters);
 		next();
-	})
+	});
 });
 
 server.listen(process.env.PORT || 8080, function() {
