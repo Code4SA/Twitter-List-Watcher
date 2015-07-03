@@ -1,3 +1,5 @@
+require('newrelic');
+
 var Twit = require('twit');
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
