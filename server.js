@@ -106,7 +106,7 @@ var get_list = function(slug, owner_screen_name) {
 				Tweeter.findOneAndUpdate({ id: tweet.user.id }, tweet.user, {upsert: true }, function(err, user) {
 					if (err) {
 						console.log("Tweeter Err", err);
-					} else {
+					} else if (user) {
 						remove_inc(tweet.user);
 						tweet.user_id = user._id;
 						tweet.list_slug = slug;
